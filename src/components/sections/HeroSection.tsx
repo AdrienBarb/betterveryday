@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import WaitlistForm from "@/components/WaitlistForm";
 
 export default function HeroSection() {
@@ -24,7 +26,14 @@ export default function HeroSection() {
         </p>
 
         <div className="max-w-md mx-auto mb-8">
-          <WaitlistForm />
+          <Link href="/define-goal">
+            <Button
+              size="lg"
+              className="w-full mb-4 bg-black text-white hover:bg-black/90"
+            >
+              Define my goal
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
