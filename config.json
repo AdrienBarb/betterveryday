@@ -20,19 +20,12 @@
       "goal tracking",
       "become"
     ],
-    "author": "Become",
-    "ogImage": "/og-image.png",
-    "twitterHandle": "@becomeapp"
+    "author": "Maarty",
+    "ogImage": "/og-banner.png",
+    "twitterHandle": "@maartyapp"
   },
   "contact": {
-    "email": "hello@become.app",
-    "supportEmail": "support@become.app"
-  },
-  "social": {
-    "twitter": "https://twitter.com/becomeapp",
-    "github": "https://github.com/becomeapp",
-    "linkedin": "https://linkedin.com/company/becomeapp",
-    "instagram": "https://instagram.com/becomeapp",
-    "tiktok": "https://tiktok.com/@becomeapp"
+    "email": "hello@maarty.app",
+    "supportEmail": "support@maarty.app"
   }
 }
