@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
+import AuthModal from "@/components/AuthModal";
+import { useSession } from "@/lib/better-auth/auth-client";
 import toast from "react-hot-toast";
 import useApi from "@/lib/hooks/useApi";
 
@@ -86,7 +88,9 @@ function useTypingEffect(examples: string[]) {
 export default function DefineGoalPage() {
   const router = useRouter();
   const { usePost } = useApi();
+  const { data: session } = useSession();
   const [goalData, setGoalData] = useState<GoalData | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const typingPlaceholder = useTypingEffect(goalExamples);
 
   const {
@@ -134,10 +138,10 @@ export default function DefineGoalPage() {
     },
   });
 
-  const saveGoal = usePost("/api/maarty/goal/save", {
+  const saveGoal = usePost("/maarty/goals", {
     onSuccess: () => {
       toast.success("Goal saved! Let's get started.");
-      router.push("/today");
+      router.push("/goals");
     },
     onError: (error: unknown) => {
       const errorMessage =
@@ -154,11 +158,31 @@ export default function DefineGoalPage() {
   };
 
   const onSubmitConfirmation = (data: GoalConfirmationFormData) => {
-    saveGoal.mutate({
-      title: data.goalTitle,
-      description: data.goalDescription,
-      endDate: data.suggestedEndDate,
-    });
+    // Check if user is authenticated
+    if (!session?.user) {
+      setAuthModalOpen(true);
+      return;
+    }
+
+    // Always show modal to ensure profile is complete
+    // The modal will check if profile needs to be completed
+    setAuthModalOpen(true);
+  };
+
+  const handleAuthComplete = () => {
+    // After auth is complete, try to save the goal again
+    const formData = confirmationForm.getValues();
+    if (
+      formData.goalTitle &&
+      formData.goalDescription &&
+      formData.suggestedEndDate
+    ) {
+      saveGoal.mutate({
+        title: formData.goalTitle,
+        description: formData.goalDescription,
+        endDate: formData.suggestedEndDate,
+      });
+    }
   };
 
   if (generateGoal.isPending) {
@@ -186,113 +210,103 @@ export default function DefineGoalPage() {
             Here&apos;s your goal with Maarty
           </h1>
 
-          {saveGoal.isPending ? (
-            <div className="flex flex-col items-center">
-              <Image
-                src="/maarty.png"
-                alt="Maarty"
-                width={200}
-                height={200}
-                className="w-32 h-32 object-contain animate-spin"
+          <form
+            onSubmit={handleSubmitConfirmation(onSubmitConfirmation)}
+            className="space-y-6 bg-white p-8 rounded-lg border"
+          >
+            <div>
+              <Label htmlFor="goal-title" className="text-text font-semibold">
+                Goal
+              </Label>
+              <Input
+                id="goal-title"
+                {...registerConfirmation("goalTitle")}
+                className="mt-2"
               />
-              <p className="mt-4 text-text/70 text-center">
-                Maarty is getting ready...
-              </p>
+              {confirmationErrors.goalTitle && (
+                <p className="text-sm text-destructive mt-1">
+                  {confirmationErrors.goalTitle.message}
+                </p>
+              )}
             </div>
-          ) : (
-            <form
-              onSubmit={handleSubmitConfirmation(onSubmitConfirmation)}
-              className="space-y-6 bg-white p-8 rounded-lg border"
-            >
-              <div>
-                <Label htmlFor="goal-title" className="text-text font-semibold">
-                  Goal
-                </Label>
-                <Input
-                  id="goal-title"
-                  {...registerConfirmation("goalTitle")}
-                  className="mt-2"
-                />
-                {confirmationErrors.goalTitle && (
-                  <p className="text-sm text-destructive mt-1">
-                    {confirmationErrors.goalTitle.message}
-                  </p>
-                )}
-              </div>
 
-              <div>
-                <Label
-                  htmlFor="goal-description"
-                  className="text-text font-semibold"
-                >
-                  Description
-                </Label>
-                <Textarea
-                  id="goal-description"
-                  {...registerConfirmation("goalDescription")}
-                  className="mt-2 min-h-[100px]"
-                  defaultValue={goalData.goalDescription}
-                />
-                {confirmationErrors.goalDescription && (
-                  <p className="text-sm text-destructive mt-1">
-                    {confirmationErrors.goalDescription.message}
-                  </p>
-                )}
-              </div>
+            <div>
+              <Label
+                htmlFor="goal-description"
+                className="text-text font-semibold"
+              >
+                Description
+              </Label>
+              <Textarea
+                id="goal-description"
+                {...registerConfirmation("goalDescription")}
+                className="mt-2 min-h-[100px]"
+                defaultValue={goalData.goalDescription}
+              />
+              {confirmationErrors.goalDescription && (
+                <p className="text-sm text-destructive mt-1">
+                  {confirmationErrors.goalDescription.message}
+                </p>
+              )}
+            </div>
 
-              <div>
-                <Label htmlFor="end-date" className="text-text font-semibold">
-                  When do you want this done?
-                </Label>
-                <div className="mt-2">
-                  <DatePicker
-                    value={selectedDate}
-                    onChange={(date: Date | undefined) => {
-                      if (date) {
-                        const dateString = date.toISOString().split("T")[0];
-                        setValue("suggestedEndDate", dateString, {
-                          shouldValidate: true,
-                        });
-                      }
-                    }}
-                    placeholder="Select a date"
-                    disabled={saveGoal.isPending}
-                  />
-                </div>
-                {confirmationErrors.suggestedEndDate && (
-                  <p className="text-sm text-destructive mt-1">
-                    {confirmationErrors.suggestedEndDate.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  disabled={saveGoal.isPending}
-                  className="flex-1"
-                  onClick={() => {
-                    setGoalData(null);
-                    reset();
-                    resetInputForm();
+            <div>
+              <Label htmlFor="end-date" className="text-text font-semibold">
+                When do you want this done?
+              </Label>
+              <div className="mt-2">
+                <DatePicker
+                  value={selectedDate}
+                  onChange={(date: Date | undefined) => {
+                    if (date) {
+                      const dateString = date.toISOString().split("T")[0];
+                      setValue("suggestedEndDate", dateString, {
+                        shouldValidate: true,
+                      });
+                    }
                   }}
-                >
-                  Redefine my goal
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
+                  placeholder="Select a date"
                   disabled={saveGoal.isPending}
-                  className="flex-1 bg-black text-white hover:bg-black/90"
-                >
-                  {saveGoal.isPending ? "Saving..." : "Start with Maarty"}
-                </Button>
+                />
               </div>
-            </form>
-          )}
+              {confirmationErrors.suggestedEndDate && (
+                <p className="text-sm text-destructive mt-1">
+                  {confirmationErrors.suggestedEndDate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                disabled={saveGoal.isPending}
+                className="flex-1"
+                onClick={() => {
+                  setGoalData(null);
+                  reset();
+                  resetInputForm();
+                }}
+              >
+                Redefine my goal
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={saveGoal.isPending}
+                className="flex-1 bg-black text-white hover:bg-black/90"
+              >
+                {saveGoal.isPending ? "Saving..." : "Start with Maarty"}
+              </Button>
+            </div>
+          </form>
         </div>
+        <AuthModal
+          open={authModalOpen}
+          onOpenChange={setAuthModalOpen}
+          onComplete={handleAuthComplete}
+        />
       </div>
     );
   }

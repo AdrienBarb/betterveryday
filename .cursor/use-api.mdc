@@ -1,8 +1,9 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
+
 # API Integration Rules with useApi Hook
 
 ## Overview
@@ -24,11 +25,11 @@ The `useApi` hook is our centralized solution for handling all API interactions,
 ```typescript
 const { useGet } = useApi();
 const { data, isLoading, error } = useGet(
-  '/api/endpoint',
-  { queryParam: 'value' }, // Optional query parameters
+  "/endpoint",
+  { queryParam: "value" }, // Optional query parameters
   {
     // ... other React Query options
-  },
+  }
 );
 ```
 
@@ -36,7 +37,7 @@ const { data, isLoading, error } = useGet(
 
 ```typescript
 const { usePost } = useApi();
-const { mutate: createData, isPending } = usePost('/api/endpoint', {
+const { mutate: createData, isPending } = usePost("/endpoint", {
   onSuccess: (data) => {
     // Handle success
   },
@@ -53,7 +54,7 @@ createData(payload);
 
 ```typescript
 const { usePut } = useApi();
-const { mutate: updateData } = usePut('/api/endpoint', {
+const { mutate: updateData } = usePut("/endpoint", {
   onSuccess: (data) => {
     // Handle success
   },
@@ -68,12 +69,12 @@ updateData({ id: 1, ...updatePayload });
 ```typescript
 const { useInfinite } = useApi();
 const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfinite(
-  'uniqueQueryKey',
-  '/api/endpoint',
+  "uniqueQueryKey",
+  "/api/endpoint",
   { limit: 10 }, // Pagination parameters
   {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-  },
+  }
 );
 ```
 
@@ -83,22 +84,22 @@ const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfinite(
 
 ```typescript
 const { usePut } = useApi();
-const { mutate } = usePut('/api/endpoint', {
+const { mutate } = usePut("/endpoint", {
   onMutate: async (newData) => {
     // Cancel outgoing refetches
-    await queryClient.cancelQueries({ queryKey: ['your-query'] });
+    await queryClient.cancelQueries({ queryKey: ["your-query"] });
 
     // Snapshot previous value
-    const previousData = queryClient.getQueryData(['your-query']);
+    const previousData = queryClient.getQueryData(["your-query"]);
 
     // Optimistically update
-    queryClient.setQueryData(['your-query'], newData);
+    queryClient.setQueryData(["your-query"], newData);
 
     return { previousData };
   },
   onError: (err, newData, context) => {
     // Rollback on error
-    queryClient.setQueryData(['your-query'], context.previousData);
+    queryClient.setQueryData(["your-query"], context.previousData);
   },
 });
 ```
@@ -106,11 +107,11 @@ const { mutate } = usePut('/api/endpoint', {
 2. **Dependent Queries**
 
 ```typescript
-const { data: user } = useGet('/api/user');
+const { data: user } = useGet("/user");
 const { data: userPosts } = useGet(
   `/api/posts/${user?.id}`,
   {},
-  { enabled: !!user },
+  { enabled: !!user }
 );
 ```
 

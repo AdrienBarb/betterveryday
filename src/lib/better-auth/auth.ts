@@ -1,9 +1,9 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { magicLink } from "better-auth/plugins";
+import { emailOTP } from "better-auth/plugins";
 import { prisma } from "@/lib/db/prisma";
 import { resendClient } from "@/lib/resend/resendClient";
-import { MagicLinkEmail } from "@/lib/emails/MagicLinkEmail";
+import { OTPEmail } from "@/lib/emails/OTPEmail";
 import config from "@/lib/config";
 
 export const auth = betterAuth({
@@ -14,16 +14,16 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [
-    magicLink({
+    emailOTP({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      sendMagicLink: async ({ email, token, url }, request) => {
+      sendVerificationOTP: async ({ email, otp, type }) => {
         try {
           const result = await resendClient.emails.send({
             from: config.contact.email,
             to: email,
-            subject: "Sign in to " + config.project.name,
-            react: MagicLinkEmail({
-              magicLink: url,
+            subject: "Your sign-in code for " + config.project.name,
+            react: OTPEmail({
+              otp,
             }),
           });
 
@@ -34,7 +34,7 @@ export const auth = betterAuth({
             );
           }
         } catch (error) {
-          console.error("❌ Error sending magic link email:", error);
+          console.error("❌ Error sending OTP email:", error);
           if (error instanceof Error) {
             throw new Error(`Email send failed: ${error.message}`);
           }

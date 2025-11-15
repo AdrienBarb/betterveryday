@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { authClient } from "@/lib/better-auth/auth-client";
+import { authClient, useSession } from "@/lib/better-auth/auth-client";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
 
 const signInSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.email("Please enter a valid email address"),
 });
 
 const otpSchema = z.object({
@@ -28,21 +28,27 @@ const otpSchema = z.object({
 type SignInFormData = z.infer<typeof signInSchema>;
 type OTPFormData = z.infer<typeof otpSchema>;
 
-interface SignInModalProps {
+interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onComplete: () => void;
 }
 
-export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
-  const [step, setStep] = useState<"email" | "otp">("email");
+export default function AuthModal({
+  open,
+  onOpenChange,
+  onComplete,
+}: AuthModalProps) {
+  const [step, setStep] = useState<"auth" | "otp">("auth");
   const [isLoading, setIsLoading] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const { data: session } = useSession();
 
   const {
-    register: registerEmail,
-    handleSubmit: handleSubmitEmail,
-    formState: { errors: emailErrors },
-    reset: resetEmail,
+    register: registerAuth,
+    handleSubmit: handleSubmitAuth,
+    formState: { errors: authErrors },
+    reset: resetAuth,
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
   });
@@ -56,7 +62,27 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
     resolver: zodResolver(otpSchema),
   });
 
-  const onSubmitEmail = async (data: SignInFormData) => {
+  // Reset step when modal closes
+  useEffect(() => {
+    if (!open) {
+      // Modal closed, reset everything
+      setStep("auth");
+      setUserEmail("");
+      resetAuth();
+      resetOTP();
+    }
+  }, [open, resetAuth, resetOTP]);
+
+  // Check if user is already authenticated when modal opens
+  useEffect(() => {
+    if (open && session?.user) {
+      // User is already authenticated, close modal and call onComplete
+      onComplete();
+      onOpenChange(false);
+    }
+  }, [open, session, onComplete, onOpenChange]);
+
+  const onSubmitAuth = async (data: SignInFormData) => {
     setIsLoading(true);
     try {
       const result = await authClient.emailOtp.sendVerificationOtp({
@@ -65,15 +91,15 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
       });
 
       if (result.error) {
-        throw new Error(result.error.message || "Failed to send OTP");
+        throw new Error(result.error.message || "Failed to send the code");
       }
 
       setUserEmail(data.email);
       setStep("otp");
-      toast.success("Check your email for the OTP code!");
-      resetEmail();
+      toast.success("Check your email for the code!");
+      resetAuth();
     } catch (error) {
-      toast.error("Failed to send OTP. Please try again.");
+      toast.error("Failed to send the code. Please try again.");
       console.error("OTP send error:", error);
     } finally {
       setIsLoading(false);
@@ -94,6 +120,8 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
 
       toast.success("Signed in successfully!");
       resetOTP();
+      // Close modal and call onComplete after successful authentication
+      onComplete();
       onOpenChange(false);
     } catch (error) {
       toast.error("Invalid OTP. Please try again.");
@@ -104,19 +132,17 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
   };
 
   const handleClose = () => {
-    if (step === "otp") {
-      setStep("email");
-      resetOTP();
-      setUserEmail("");
-    }
-    resetEmail();
+    setStep("auth");
+    setUserEmail("");
+    resetAuth();
+    resetOTP();
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
-        {step === "email" ? (
+        {step === "auth" ? (
           <>
             <DialogHeader>
               <DialogTitle>Sign In</DialogTitle>
@@ -125,19 +151,22 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
                 in.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmitEmail(onSubmitEmail)} className="space-y-4">
+            <form
+              onSubmit={handleSubmitAuth(onSubmitAuth)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
-                  {...registerEmail("email")}
+                  {...registerAuth("email")}
                   disabled={isLoading}
                 />
-                {emailErrors.email && (
+                {authErrors.email && (
                   <p className="text-sm text-destructive">
-                    {emailErrors.email.message}
+                    {authErrors.email.message}
                   </p>
                 )}
               </div>
@@ -146,7 +175,7 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
               </Button>
             </form>
           </>
-        ) : (
+        ) : step === "otp" ? (
           <>
             <DialogHeader>
               <DialogTitle>Enter Verification Code</DialogTitle>
@@ -173,24 +202,17 @@ export default function SignInModal({ open, onOpenChange }: SignInModalProps) {
                   </p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Verifying..." : "Verify Code"}
-              </Button>
               <Button
-                type="button"
-                variant="ghost"
+                variant="default"
+                type="submit"
                 className="w-full"
-                onClick={() => {
-                  setStep("email");
-                  resetOTP();
-                }}
                 disabled={isLoading}
               >
-                Back to email
+                {isLoading ? "Verifying..." : "Verify Code"}
               </Button>
             </form>
           </>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
