@@ -1,0 +1,95 @@
+{
+  "project": {
+    "name": "SaaS Template",
+    "shortName": "SaaS",
+    "description": "A modern, production-ready SaaS application template",
+    "tagline": "Build amazing SaaS products faster",
+    "url": "https://yourdomain.com",
+    "logo": "/logo.svg",
+    "favicon": "/favicon.ico"
+  },
+  "seo": {
+    "title": "SaaS Template - Build Amazing Products",
+    "description": "A modern, production-ready SaaS application template with authentication, database, email, and analytics.",
+    "keywords": [
+      "saas",
+      "template",
+      "nextjs",
+      "react",
+      "typescript"
+    ],
+    "author": "Your Name",
+    "ogImage": "/og-image.png",
+    "twitterHandle": "@yourhandle"
+  },
+  "contact": {
+    "email": "hello@yourdomain.com",
+    "supportEmail": "support@yourdomain.com"
+  },
+  "social": {
+    "twitter": "https://twitter.com/yourhandle",
+    "github": "https://github.com/yourusername",
+    "linkedin": "https://linkedin.com/company/yourcompany",
+    "instagram": "https://instagram.com/yourhandle",
+    "tiktok": "https://tiktok.com/@yourhandle"
+  },
+  "pricing": {
+    "plans": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "price": "$9",
+        "period": "/month",
+        "description": "Perfect for individuals and small projects",
+        "checkoutUrl": "",
+        "features": [
+          "Up to 5 projects",
+          "Basic analytics",
+          "Email support",
+          "5GB storage",
+          "Community access"
+        ]
+      },
+      {
+        "id": "professional",
+        "name": "Professional",
+        "price": "$29",
+        "period": "/month",
+        "description": "Ideal for growing businesses",
+        "checkoutUrl": "",
+        "features": [
+          "Unlimited projects",
+          "Advanced analytics",
+          "Priority support",
+          "50GB storage",
+          "API access",
+          "Custom integrations"
+        ]
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "price": "Custom",
+        "period": "",
+        "description": "For large organizations",
+        "checkoutUrl": "",
+        "features": [
+          "Everything in Professional",
+          "Dedicated account manager",
+          "Custom SLA",
+          "Unlimited storage",
+          "On-premise deployment",
+          "24/7 phone support"
+        ]
+      }
+    ]
+  },
+  "features": {
+    "auth": true,
+    "waitlist": {
+      "enabled": true,
+      "showPosition": true,
+      "confirmationEmail": true
+    }
+  }
+}
