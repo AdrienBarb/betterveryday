@@ -1,0 +1,123 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Integration Rules with useApi Hook
+
+## Overview
+
+The `useApi` hook is our centralized solution for handling all API interactions, built on top of Axios and TanStack React Query. This hook provides a consistent, type-safe approach to data fetching and state management.
+
+## Core Features
+
+- **Type-safe API calls** with built-in error handling
+- **Automatic caching and revalidation** via React Query
+- **Loading and error states** management
+- **Infinite scroll** support
+- **Optimistic updates** capabilities
+
+## Available Methods
+
+### 1. Data Fetching (useGet)
+
+```typescript
+const { useGet } = useApi();
+const { data, isLoading, error } = useGet(
+  '/api/endpoint',
+  { queryParam: 'value' }, // Optional query parameters
+  {
+    // ... other React Query options
+  },
+);
+```
+
+### 2. Data Creation (usePost)
+
+```typescript
+const { usePost } = useApi();
+const { mutate: createData, isPending } = usePost('/api/endpoint', {
+  onSuccess: (data) => {
+    // Handle success
+  },
+  onError: (error) => {
+    // Handle error
+  },
+});
+
+// Usage
+createData(payload);
+```
+
+### 3. Data Updates (usePut)
+
+```typescript
+const { usePut } = useApi();
+const { mutate: updateData } = usePut('/api/endpoint', {
+  onSuccess: (data) => {
+    // Handle success
+  },
+});
+
+// Usage
+updateData({ id: 1, ...updatePayload });
+```
+
+### 4. Infinite Scrolling (useInfinite)
+
+```typescript
+const { useInfinite } = useApi();
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfinite(
+  'uniqueQueryKey',
+  '/api/endpoint',
+  { limit: 10 }, // Pagination parameters
+  {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  },
+);
+```
+
+## Best Practices
+
+1. **Optimistic Updates**
+
+```typescript
+const { usePut } = useApi();
+const { mutate } = usePut('/api/endpoint', {
+  onMutate: async (newData) => {
+    // Cancel outgoing refetches
+    await queryClient.cancelQueries({ queryKey: ['your-query'] });
+
+    // Snapshot previous value
+    const previousData = queryClient.getQueryData(['your-query']);
+
+    // Optimistically update
+    queryClient.setQueryData(['your-query'], newData);
+
+    return { previousData };
+  },
+  onError: (err, newData, context) => {
+    // Rollback on error
+    queryClient.setQueryData(['your-query'], context.previousData);
+  },
+});
+```
+
+2. **Dependent Queries**
+
+```typescript
+const { data: user } = useGet('/api/user');
+const { data: userPosts } = useGet(
+  `/api/posts/${user?.id}`,
+  {},
+  { enabled: !!user },
+);
+```
+
+## Common Gotchas
+
+1. Avoid direct axios calls - always use the `useApi` hook methods
+2. Don't forget to handle loading and error states
+3. Use proper query keys for caching and invalidation
+4. Consider implementing retry logic for failed requests
+5. Be mindful of unnecessary refetches
