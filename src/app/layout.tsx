@@ -6,6 +6,8 @@ import { QueryProviders } from "@/components/providers/QueryProviders";
 import { PostHogProvider } from "@/components/tracking/PostHogProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Global from "@/components/Global";
+import ModalWrapper from "@/components/modals/ModalWrapper";
 import "./globals.css";
 import { genPageMetadata } from "@/lib/seo/genPageMetadata";
 import { siteMetadata } from "@/data/siteMetadata";
@@ -52,6 +54,8 @@ export default function RootLayout({
             </div>
             <Toaster position="bottom-center" />
             <GlobalErrorHandler />
+            <Global />
+            <ModalWrapper />
           </PostHogProvider>
         </QueryProviders>
       </body>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import config from "@/lib/config";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,12 +10,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession, signOut } from "@/lib/better-auth/auth-client";
-import SignInModal from "@/components/SignInModal";
+import { useGlobalModalStore } from "@/lib/stores/GlobalModalStore";
+import { useUser } from "@/lib/hooks/useUser";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const { data: session } = useSession();
-
+  const { user } = useUser();
+  const openModal = useGlobalModalStore((s) => s.openModal);
+  const router = useRouter();
   const handleSignOut = async () => {
     await signOut();
   };
@@ -70,21 +71,29 @@ export default function Navbar() {
 
           {/* Auth Actions */}
           <div className="flex items-center">
-            {session?.user ? (
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="cursor-pointer">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback>
-                        {getInitials(session.user.name, session.user.email)}
+                        {getInitials(user.name, user.email)}
                       </AvatarFallback>
                     </Avatar>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
+                <DropdownMenuContent align="end" className="bg-white">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      router.push("/goals");
+                    }}
+                    className="cursor-pointer"
+                  >
+                    My goals
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleSignOut}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-destructive"
                   >
                     Sign Out
                   </DropdownMenuItem>
@@ -95,7 +104,7 @@ export default function Navbar() {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setIsSignInModalOpen(true);
+                  openModal("signIn");
                 }}
                 className="text-text/80 hover:text-text transition-colors"
               >
@@ -105,10 +114,6 @@ export default function Navbar() {
           </div>
         </nav>
       </header>
-      <SignInModal
-        open={isSignInModalOpen}
-        onOpenChange={setIsSignInModalOpen}
-      />
     </>
   );
 }

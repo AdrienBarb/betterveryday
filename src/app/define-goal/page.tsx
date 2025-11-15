@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
-import AuthModal from "@/components/AuthModal";
 import { useSession } from "@/lib/better-auth/auth-client";
+import { useGlobalModalStore } from "@/lib/stores/GlobalModalStore";
 import toast from "react-hot-toast";
 import useApi from "@/lib/hooks/useApi";
 
@@ -89,8 +89,8 @@ export default function DefineGoalPage() {
   const router = useRouter();
   const { usePost } = useApi();
   const { data: session } = useSession();
+  const openModal = useGlobalModalStore((s) => s.openModal);
   const [goalData, setGoalData] = useState<GoalData | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const typingPlaceholder = useTypingEffect(goalExamples);
 
   const {
@@ -160,29 +160,45 @@ export default function DefineGoalPage() {
   const onSubmitConfirmation = (data: GoalConfirmationFormData) => {
     // Check if user is authenticated
     if (!session?.user) {
-      setAuthModalOpen(true);
+      openModal("auth", {
+        onComplete: () => {
+          // After auth is complete, try to save the goal again
+          const formData = confirmationForm.getValues();
+          if (
+            formData.goalTitle &&
+            formData.goalDescription &&
+            formData.suggestedEndDate
+          ) {
+            saveGoal.mutate({
+              title: formData.goalTitle,
+              description: formData.goalDescription,
+              endDate: formData.suggestedEndDate,
+            });
+          }
+        },
+      });
       return;
     }
 
     // Always show modal to ensure profile is complete
     // The modal will check if profile needs to be completed
-    setAuthModalOpen(true);
-  };
-
-  const handleAuthComplete = () => {
-    // After auth is complete, try to save the goal again
-    const formData = confirmationForm.getValues();
-    if (
-      formData.goalTitle &&
-      formData.goalDescription &&
-      formData.suggestedEndDate
-    ) {
-      saveGoal.mutate({
-        title: formData.goalTitle,
-        description: formData.goalDescription,
-        endDate: formData.suggestedEndDate,
-      });
-    }
+    openModal("auth", {
+      onComplete: () => {
+        // After auth is complete, try to save the goal again
+        const formData = confirmationForm.getValues();
+        if (
+          formData.goalTitle &&
+          formData.goalDescription &&
+          formData.suggestedEndDate
+        ) {
+          saveGoal.mutate({
+            title: formData.goalTitle,
+            description: formData.goalDescription,
+            endDate: formData.suggestedEndDate,
+          });
+        }
+      },
+    });
   };
 
   if (generateGoal.isPending) {
@@ -302,11 +318,6 @@ export default function DefineGoalPage() {
             </div>
           </form>
         </div>
-        <AuthModal
-          open={authModalOpen}
-          onOpenChange={setAuthModalOpen}
-          onComplete={handleAuthComplete}
-        />
       </div>
     );
   }

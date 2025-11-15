@@ -18,16 +18,13 @@ interface Goal {
 
 export default function GoalsPage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const { useGet } = useApi();
 
-  const { data, isLoading, error } = useGet<{ goals: Goal[] }>("/maarty/goals");
-
-  // Redirect to login if not authenticated
-  if (!session?.user) {
-    router.push("/");
-    return null;
-  }
+  const { data, isLoading, error } = useGet("/maarty/goals") as {
+    data?: { goals: Goal[] };
+    isLoading: boolean;
+    error: unknown;
+  };
 
   if (isLoading) {
     return (
@@ -71,7 +68,9 @@ export default function GoalsPage() {
 
         {goals.length === 0 ? (
           <div className="bg-white rounded-lg border p-12 text-center">
-            <p className="text-text/70 mb-4">You don't have any goals yet.</p>
+            <p className="text-text/70 mb-4">
+              You don&apos;t have any goals yet.
+            </p>
             <Link href="/define-goal">
               <Button className="bg-black text-white hover:bg-black/90">
                 Create Your First Goal
@@ -80,7 +79,7 @@ export default function GoalsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {goals.map((goal) => (
+            {goals.map((goal: Goal) => (
               <div
                 key={goal.id}
                 className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow"
