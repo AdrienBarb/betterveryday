@@ -50,19 +50,13 @@ export default function WaitlistForm() {
     joinWaitlist.mutate(data);
   };
 
-  const showPosition = config.features.waitlist?.showPosition !== false;
-
   if (isSuccess) {
     return (
       <div className="text-center space-y-4">
         <div className="text-green-600 font-semibold">
           ✓ You&apos;re on the waitlist!
         </div>
-        {showPosition && position && (
-          <p className="text-sm text-muted-foreground">
-            Your position: #{position}
-          </p>
-        )}
+
         <Button
           variant="outline"
           onClick={() => {

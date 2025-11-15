@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Poppins } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import GlobalErrorHandler from "@/components/GlobalErrorHandler";
 import { QueryProviders } from "@/components/providers/QueryProviders";
@@ -10,16 +10,21 @@ import "./globals.css";
 import { genPageMetadata } from "@/lib/seo/genPageMetadata";
 import { siteMetadata } from "@/data/siteMetadata";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+// Selecta is a commercial font. To use it:
+// 1. Purchase and download Selecta font files
+// 2. Place the font files (e.g., Selecta-Regular.woff2, Selecta-Bold.woff2) in /public/fonts/
+// 3. Replace the Inter font below with localFont configuration pointing to your Selecta files
+// For now, using Inter as a placeholder - update when Selecta font files are available
+const selecta = Inter({
+  variable: "--font-selecta",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = genPageMetadata({
@@ -36,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${montserrat.variable} ${poppins.variable} antialiased`}
+        className={`${inter.variable} ${selecta.variable} antialiased`}
       >
         <QueryProviders>
           <PostHogProvider>

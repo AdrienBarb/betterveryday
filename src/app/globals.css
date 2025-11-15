@@ -1,28 +1,31 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: 0 0% 100%;
-  --color-foreground: 0 0% 3.9%;
+  --color-background: 247 250 252;
+  --color-foreground: 5 30% 9%;
   --color-card: 0 0% 100%;
-  --color-card-foreground: 0 0% 3.9%;
+  --color-card-foreground: 5 30% 9%;
   --color-popover: 0 0% 100%;
-  --color-popover-foreground: 0 0% 3.9%;
-  --color-primary: 0 0% 9%;
-  --color-primary-foreground: 0 0% 98%;
+  --color-popover-foreground: 5 30% 9%;
+  --color-primary: 245 248 251;
+  --color-primary-foreground: 5 30% 9%;
+  
+  /* Custom primary color for direct use */
+  --primary-color: #F5F8FB;
   --color-secondary: 0 0% 96.1%;
-  --color-secondary-foreground: 0 0% 9%;
+  --color-secondary-foreground: 5 30% 9%;
   --color-muted: 0 0% 96.1%;
   --color-muted-foreground: 0 0% 45.1%;
   --color-accent: 0 0% 96.1%;
-  --color-accent-foreground: 0 0% 9%;
+  --color-accent-foreground: 5 30% 9%;
   --color-destructive: 0 84.2% 60.2%;
   --color-destructive-foreground: 0 0% 98%;
   --color-border: 0 0% 89.8%;
   --color-input: 0 0% 89.8%;
-  --color-ring: 0 0% 3.9%;
+  --color-ring: 5 30% 9%;
   --radius: 0.5rem;
-  --font-sans: var(--font-montserrat);
-  --font-mono: var(--font-poppins);
+  --font-sans: var(--font-inter);
+  --font-selecta: var(--font-selecta);
 }
 
 * {
@@ -30,7 +33,7 @@
 }
 
 body {
-  background-color: hsl(var(--color-background));
-  color: hsl(var(--color-foreground));
+  background-color: #F7FAFC;
+  color: #051A24;
   font-family: var(--font-sans);
 }

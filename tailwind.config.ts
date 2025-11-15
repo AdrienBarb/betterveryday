@@ -8,10 +8,19 @@ const config: Config = {
     "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        text: "#051A24",
+        background: "#F7FAFC",
+        primary: "#F5F8FB",
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "sans-serif"],
+        selecta: ["var(--font-selecta)", "sans-serif"],
+      },
+    },
   },
   plugins: [],
 };
 
 export default config;
-

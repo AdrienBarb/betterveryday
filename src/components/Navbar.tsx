@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import config from "@/lib/config";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -37,50 +36,73 @@ export default function Navbar() {
     return "U";
   };
 
+  const navLinks = [
+    { href: "#features", label: "Features" },
+    { href: "#how-it-works", label: "How it works" },
+  ];
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <nav className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link
-            href="/"
-            className="text-xl font-semibold hover:opacity-80 transition-opacity"
-          >
-            {config.project.shortName || config.project.name}
-          </Link>
+      <header className="sticky top-0 z-50 w-full py-4 px-4">
+        <nav className="max-w-4xl mx-auto flex h-12 items-center justify-between px-6 bg-white/80 backdrop-blur-md rounded-full shadow-sm">
+          {/* Logo and Navigation Links */}
+          <div className="flex items-center gap-8">
+            <Link
+              href="/"
+              className="text-xl font-semibold text-text hover:opacity-80 transition-opacity"
+            >
+              {config.project.shortName || config.project.name}
+            </Link>
 
-          {config.features.auth && (
-            <>
-              {session?.user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="cursor-pointer">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {getInitials(session.user.name, session.user.email)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-background">
-                    <DropdownMenuItem
-                      onClick={handleSignOut}
-                      className="cursor-pointer"
-                    >
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsSignInModalOpen(true)}
-                  className="cursor-pointer"
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-text/80 hover:text-text transition-colors"
                 >
-                  Sign In
-                </Button>
-              )}
-            </>
-          )}
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Auth Actions */}
+          <div className="flex items-center">
+            {session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="cursor-pointer">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>
+                        {getInitials(session.user.name, session.user.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="cursor-pointer"
+                  >
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsSignInModalOpen(true);
+                }}
+                className="text-text/80 hover:text-text transition-colors"
+              >
+                Log in
+              </Link>
+            )}
+          </div>
         </nav>
       </header>
       <SignInModal
