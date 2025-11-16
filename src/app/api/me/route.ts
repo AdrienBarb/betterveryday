@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         email: true,
+        timezone: true,
         telegramChatId: true,
         telegramIdentifier: true,
         emailVerified: true,

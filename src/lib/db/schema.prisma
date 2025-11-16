@@ -13,6 +13,7 @@ model User {
   name               String
   email              String
   phone              String?
+  timezone           String?
   telegramChatId     String?
   telegramIdentifier String?           @default(uuid())
   emailVerified      Boolean           @default(false)
