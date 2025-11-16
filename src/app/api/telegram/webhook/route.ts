@@ -82,7 +82,6 @@ export async function POST(req: NextRequest) {
         goalDescription: activeGoal.description,
         userMessage: text,
       });
-      console.log("🚀 ~ POST ~ result:", result);
 
       // 1. Save user message
       await logMessage({
