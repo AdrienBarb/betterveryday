@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
+import { sendTelegramMessage } from "@/lib/telegram/sendTelegramMessage";
+import { classifyUserMessage } from "@/lib/openai/classifyUserMessage";
+import { logMessage } from "@/lib/services/messages/logMessage";
+import { updateDailyReflection } from "@/lib/openai/updateDailyReflection";
+import { Goal, User } from "@prisma/client";
 
 type TelegramUpdate = {
   update_id: number;
@@ -33,9 +36,13 @@ export async function POST(req: NextRequest) {
     const lower = text.toLowerCase();
 
     // 1) Is this chat already linked?
-    const connectedUser = await prisma.user.findFirst({
+    const connectedUser = (await prisma.user.findFirst({
       where: { telegramChatId: chatId.toString() },
-    });
+      select: {
+        id: true,
+        name: true,
+      },
+    })) as User | null;
 
     // 2) Handle /start
     if (lower === "/start") {
@@ -56,14 +63,60 @@ export async function POST(req: NextRequest) {
 
     // 3) If chat already linked → just acknowledge message (no logic for now)
     if (connectedUser) {
-      // TODO later: send this message text to OpenAI to interpret meaning (done? stuck? question? etc.)
-      await sendTelegramMessage(
-        chatId,
-        "📝 Got your message. I'm still learning to understand everything you say — soon I'll use this to track your progress and adapt your priorities."
-      );
+      const activeGoal = await prisma.goal.findFirst({
+        where: { userId: connectedUser.id, status: "active" },
+      });
 
-      // You might also want to log messages for later:
-      // await prisma.telegramMessage.create({ data: { userId: connectedUser.id, chatId: chatId.toString(), text } });
+      if (!activeGoal) {
+        await sendTelegramMessage(
+          chatId,
+          "Before I can really help, You first need to create a goal in the web app."
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      // User is connected → classify the message
+      const result = await classifyUserMessage({
+        name: connectedUser?.name || "friend",
+        goalTitle: activeGoal.title,
+        goalDescription: activeGoal.description,
+        userMessage: text,
+      });
+      console.log("🚀 ~ POST ~ result:", result);
+
+      // 1. Save user message
+      await logMessage({
+        userId: connectedUser.id,
+        goalId: activeGoal.id,
+        role: "user",
+        direction: "incoming",
+        text,
+        category: result.category,
+        storedLabel: result.storedMessage,
+      });
+
+      // 2. Update reflection if needed
+      await updateDailyReflection({
+        userId: connectedUser.id,
+        goalId: activeGoal.id,
+        morningMood: result.dailyReflectionUpdate.morningMood,
+        progress: result.dailyReflectionUpdate.progress,
+        stuck: result.dailyReflectionUpdate.stuck,
+      });
+
+      // 3. Send AI reply
+      await sendTelegramMessage(chatId, result.assistantResponse);
+
+      // 4. Log assistant message
+      await logMessage({
+        userId: connectedUser.id,
+        goalId: activeGoal.id,
+        role: "assistant",
+        direction: "outgoing",
+        text: result.assistantResponse,
+        category: result.category,
+        storedLabel: null,
+      });
 
       return NextResponse.json({ ok: true });
     }
@@ -114,23 +167,5 @@ export async function POST(req: NextRequest) {
     console.error("Error processing Telegram webhook:", error);
     // Always respond 200 so Telegram doesn't retry forever
     return NextResponse.json({ ok: true });
-  }
-}
-
-async function sendTelegramMessage(chatId: number, text: string) {
-  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "Markdown",
-      }),
-    });
-  } catch (error) {
-    console.error("Failed to send Telegram message:", error);
   }
 }

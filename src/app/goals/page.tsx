@@ -1,29 +1,52 @@
 "use client";
 
-import { useSession } from "@/lib/better-auth/auth-client";
-import { useRouter } from "next/navigation";
 import useApi from "@/lib/hooks/useApi";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { useState } from "react";
+import { GoalStatus } from "@prisma/client";
 
 interface Goal {
   id: string;
   title: string;
   description: string;
   endDate: string;
+  status: GoalStatus;
   createdAt: string;
   updatedAt: string;
 }
 
 export default function GoalsPage() {
-  const router = useRouter();
   const { useGet } = useApi();
+  const [isTriggeringMorning, setIsTriggeringMorning] = useState(false);
 
   const { data, isLoading, error } = useGet("/maarty/goals") as {
     data?: { goals: Goal[] };
     isLoading: boolean;
     error: unknown;
+  };
+
+  const handleTriggerMorning = async () => {
+    setIsTriggeringMorning(true);
+    try {
+      const response = await fetch("/api/cron/morning", {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        toast.success("Morning message sent successfully! 🌅");
+      } else {
+        throw new Error("Failed to trigger morning message");
+      }
+    } catch (error) {
+      toast.error("Failed to trigger morning message. Please try again.");
+      console.error("Error triggering morning message:", error);
+    } finally {
+      setIsTriggeringMorning(false);
+    }
   };
 
   if (isLoading) {
@@ -59,11 +82,20 @@ export default function GoalsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold text-text">My Goals</h1>
-          <Link href="/define-goal">
-            <Button className="bg-black text-white hover:bg-black/90">
-              New Goal
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleTriggerMorning}
+              disabled={isTriggeringMorning}
+              variant="outline"
+            >
+              {isTriggeringMorning ? "Sending..." : "Send Morning Message"}
             </Button>
-          </Link>
+            <Link href="/define-goal">
+              <Button className="bg-black text-white hover:bg-black/90">
+                New Goal
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {goals.length === 0 ? (
@@ -80,24 +112,37 @@ export default function GoalsPage() {
         ) : (
           <div className="space-y-4">
             {goals.map((goal: Goal) => (
-              <div
-                key={goal.id}
-                className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-semibold text-text mb-2">
-                      {goal.title}
-                    </h2>
-                    <p className="text-text/70 mb-4">{goal.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-text/60">
-                      <span>
-                        End date: {format(new Date(goal.endDate), "PPP")}
-                      </span>
+              <Link key={goal.id} href={`/goals/${goal.id}`}>
+                <div className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow cursor-pointer mb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h2 className="text-2xl font-semibold text-text">
+                          {goal.title}
+                        </h2>
+                        <Badge
+                          variant={
+                            goal.status === GoalStatus.active
+                              ? "active"
+                              : goal.status === GoalStatus.completed
+                                ? "completed"
+                                : "abandoned"
+                          }
+                        >
+                          {goal.status.charAt(0).toUpperCase() +
+                            goal.status.slice(1)}
+                        </Badge>
+                      </div>
+                      <p className="text-text/70 mb-4">{goal.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-text/60">
+                        <span>
+                          End date: {format(new Date(goal.endDate), "PPP")}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

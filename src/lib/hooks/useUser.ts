@@ -2,7 +2,7 @@ import { useUserStore } from "@/lib/stores/UserStore";
 import useApi from "@/lib/hooks/useApi";
 import { useEffect } from "react";
 import { useSession } from "@/lib/better-auth/auth-client";
-import { User } from "@prisma/client";
+import { Goal, User } from "@prisma/client";
 
 export const useUser = () => {
   const { user, setUser: setUserStore, clearUser } = useUserStore();
@@ -24,9 +24,9 @@ export const useUser = () => {
     }
   );
 
-  const setUser = (partialUser: Partial<User>) => {
+  const setUser = (partialUser: Partial<User & { goals: Goal[] }>) => {
     const updatedUser = { ...user, ...partialUser };
-    setUserStore(updatedUser as User);
+    setUserStore(updatedUser as User & { goals: Goal[] });
   };
 
   useEffect(() => {

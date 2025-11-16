@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type ModalType = "auth" | "signIn" | "onboarding" | null;
+type ModalType = "auth" | "signIn" | "onboarding" | "activeGoalLimit" | null;
 
 interface ModalStackItem {
   type: ModalType;

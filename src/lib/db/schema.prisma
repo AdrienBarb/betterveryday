@@ -9,17 +9,21 @@ generator client {
 }
 
 model User {
-  id                 String    @id @default(cuid())
+  id                 String            @id @default(cuid())
   name               String
   email              String
+  phone              String?
   telegramChatId     String?
-  telegramIdentifier String    @default(uuid())
-  emailVerified      Boolean   @default(false)
+  telegramIdentifier String?           @default(uuid())
+  emailVerified      Boolean           @default(false)
   image              String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @default(now()) @updatedAt
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @default(now()) @updatedAt
   sessions           Session[]
   accounts           Account[]
+  goals              Goal[]
+  messages           UserMessage[]
+  reflections        DailyReflection[]
 
   @@unique([email])
   @@unique([telegramIdentifier])
@@ -72,13 +76,69 @@ model Verification {
 }
 
 model Goal {
-  id          String   @id @default(cuid())
-  userId      String?
+  id          String     @id @default(cuid())
+  userId      String
   title       String
   description String
   endDate     DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      GoalStatus @default(active)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id])
+  messages    UserMessage[]
+  reflections DailyReflection[]
 
   @@map("goal")
+}
+
+model UserMessage {
+  id          String           @id @default(cuid())
+  userId      String
+  goalId      String? // usually the active goal, can be null
+  createdAt   DateTime         @default(now())
+  role        MessageRole // "user" | "assistant"
+  channel     String // "telegram"
+  direction   MessageDirection // "incoming" | "outgoing"
+  text        String
+  category    String? // "morning_motivation_reply" | "goal_progress_update" | ...
+  storedLabel String? // short internal summary, if AI returns one
+
+  user User  @relation(fields: [userId], references: [id])
+  goal Goal? @relation(fields: [goalId], references: [id])
+
+  @@map("user_message")
+}
+
+model DailyReflection {
+  id        String   @id @default(cuid())
+  userId    String
+  goalId    String
+  date      DateTime // store date with time set to 00:00:00 for that user
+  mood      String? // 1-sentence summary like "Tired but hopeful"
+  progress  String? // 1-sentence summary of progress
+  stuck     String? // 1-sentence summary of blockers
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  @@unique([userId, goalId, date]) // one reflection per user+goal+day
+  @@map("daily_reflection")
+}
+
+enum GoalStatus {
+  active
+  completed
+  abandoned
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum MessageDirection {
+  incoming
+  outgoing
 }

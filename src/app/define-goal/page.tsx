@@ -15,6 +15,9 @@ import { useSession } from "@/lib/better-auth/auth-client";
 import { useGlobalModalStore } from "@/lib/stores/GlobalModalStore";
 import toast from "react-hot-toast";
 import useApi from "@/lib/hooks/useApi";
+import { useUser } from "@/lib/hooks/useUser";
+import { getApiError } from "@/lib/utils/errorUtils";
+import { ERROR_CODES } from "@/lib/constants/errorCodes";
 
 const goalInputSchema = z.object({
   userGoal: z.string().min(1, "Please enter a goal"),
@@ -92,6 +95,7 @@ export default function DefineGoalPage() {
   const openModal = useGlobalModalStore((s) => s.openModal);
   const [goalData, setGoalData] = useState<GoalData | null>(null);
   const typingPlaceholder = useTypingEffect(goalExamples);
+  const { user } = useUser();
 
   const {
     register,
@@ -119,7 +123,7 @@ export default function DefineGoalPage() {
     ? new Date(watch("suggestedEndDate"))
     : undefined;
 
-  const generateGoal = usePost("/maarty/goal", {
+  const generateGoal = usePost("/maarty/goals/generate", {
     onSuccess: (data: GoalData) => {
       setGoalData(data);
       reset({
@@ -140,64 +144,43 @@ export default function DefineGoalPage() {
 
   const saveGoal = usePost("/maarty/goals", {
     onSuccess: () => {
-      toast.success("Goal saved! Let's get started.");
       router.push("/goals");
     },
     onError: (error: unknown) => {
-      const errorMessage =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: { error?: string } } }).response
-              ?.data?.error
-          : undefined;
-      toast.error(errorMessage || "Failed to save goal. Please try again.");
+      const { code } = getApiError(error);
+      if (code === ERROR_CODES.ACTIVE_GOAL_EXISTS) {
+        openModal("activeGoalLimit");
+      }
     },
   });
 
   const onSubmitGoal = (data: GoalInputFormData) => {
+    if (user && user.goals.length >= 1) {
+      openModal("activeGoalLimit");
+      return;
+    }
+
     generateGoal.mutate({ userGoal: data.userGoal.trim() });
   };
 
   const onSubmitConfirmation = (data: GoalConfirmationFormData) => {
-    // Check if user is authenticated
     if (!session?.user) {
       openModal("auth", {
         onComplete: () => {
-          // After auth is complete, try to save the goal again
-          const formData = confirmationForm.getValues();
-          if (
-            formData.goalTitle &&
-            formData.goalDescription &&
-            formData.suggestedEndDate
-          ) {
-            saveGoal.mutate({
-              title: formData.goalTitle,
-              description: formData.goalDescription,
-              endDate: formData.suggestedEndDate,
-            });
-          }
+          saveGoal.mutate({
+            title: data.goalTitle,
+            description: data.goalDescription,
+            endDate: data.suggestedEndDate,
+          });
         },
       });
       return;
     }
 
-    // Always show modal to ensure profile is complete
-    // The modal will check if profile needs to be completed
-    openModal("auth", {
-      onComplete: () => {
-        // After auth is complete, try to save the goal again
-        const formData = confirmationForm.getValues();
-        if (
-          formData.goalTitle &&
-          formData.goalDescription &&
-          formData.suggestedEndDate
-        ) {
-          saveGoal.mutate({
-            title: formData.goalTitle,
-            description: formData.goalDescription,
-            endDate: formData.suggestedEndDate,
-          });
-        }
-      },
+    saveGoal.mutate({
+      title: data.goalTitle,
+      description: data.goalDescription,
+      endDate: data.suggestedEndDate,
     });
   };
 
@@ -313,7 +296,11 @@ export default function DefineGoalPage() {
                 disabled={saveGoal.isPending}
                 className="flex-1 bg-black text-white hover:bg-black/90"
               >
-                {saveGoal.isPending ? "Saving..." : "Start with Maarty"}
+                {saveGoal.isPending
+                  ? "Saving..."
+                  : user
+                    ? "Create Goal"
+                    : "Start with Maarty"}
               </Button>
             </div>
           </form>

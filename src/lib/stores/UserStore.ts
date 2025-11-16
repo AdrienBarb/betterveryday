@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { User } from "@prisma/client";
+import { Goal, User } from "@prisma/client";
 
 interface UserState {
-  user: User | null;
-  setUser: (user: User) => void;
+  user: (User & { goals: Goal[] }) | null;
+  setUser: (user: User & { goals: Goal[] }) => void;
   clearUser: () => void;
 }
 

@@ -15,7 +15,7 @@ interface MutationParams {
 
 export const fetchData = async (
   url: string,
-  params?: Record<string, any>,
+  params?: Record<string, any>
 ): Promise<any> => {
   try {
     const response = await axiosInstance.get(url, { params });
@@ -50,6 +50,12 @@ const useApi = () => {
     return response.data;
   };
 
+  const patcher = async ({ url, data }: MutationParams): Promise<any> => {
+    const response: AxiosResponse = await axiosInstance.patch(url, data);
+
+    return response.data;
+  };
+
   const useGet = (url: string, params?: Record<string, any>, options = {}) =>
     useQuery({
       queryKey: ["get", { url, params }],
@@ -61,7 +67,7 @@ const useApi = () => {
     queryKey: any,
     url: string,
     params: Record<string, any>,
-    options = {},
+    options = {}
   ) => {
     return useInfiniteQuery({
       queryKey: [queryKey],
@@ -100,4 +106,3 @@ const useApi = () => {
 };
 
 export default useApi;
-

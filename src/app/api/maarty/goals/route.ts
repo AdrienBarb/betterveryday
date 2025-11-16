@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/better-auth/auth";
 import { prisma } from "@/lib/db/prisma";
 import { z } from "zod";
+import { GoalStatus } from "@prisma/client";
 import { errorHandler } from "@/lib/errors/errorHandler";
+import { errorMessages } from "@/lib/constants/errorMessage";
+import { ERROR_CODES } from "@/lib/constants/errorCodes";
 
 const goalSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -15,7 +18,10 @@ export async function GET(request: NextRequest) {
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: errorMessages.UNAUTHORIZED },
+        { status: 401 }
+      );
     }
 
     const goals = await prisma.goal.findMany({
@@ -38,7 +44,28 @@ export async function POST(request: NextRequest) {
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: errorMessages.UNAUTHORIZED },
+        { status: 401 }
+      );
+    }
+
+    // Check if user already has an active goal
+    const existingActiveGoal = await prisma.goal.findFirst({
+      where: {
+        userId: session.user.id,
+        status: GoalStatus.active,
+      },
+    });
+
+    if (existingActiveGoal) {
+      return NextResponse.json(
+        {
+          error: errorMessages.ACTIVE_GOAL_EXISTS,
+          code: ERROR_CODES.ACTIVE_GOAL_EXISTS,
+        },
+        { status: 409 }
+      );
     }
 
     const body = await request.json();

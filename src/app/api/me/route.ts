@@ -23,6 +23,11 @@ export async function GET(request: NextRequest) {
         image: true,
         createdAt: true,
         updatedAt: true,
+        goals: {
+          where: { status: "active" },
+          take: 1,
+          orderBy: { createdAt: "asc" },
+        },
       },
     });
 

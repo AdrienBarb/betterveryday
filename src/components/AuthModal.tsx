@@ -118,9 +118,7 @@ export default function AuthModal({
         throw new Error(result.error.message || "Invalid OTP");
       }
 
-      toast.success("Signed in successfully!");
       resetOTP();
-      // Close modal and call onComplete after successful authentication
       onComplete();
       onOpenChange(false);
     } catch (error) {

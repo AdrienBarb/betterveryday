@@ -2,17 +2,14 @@
 @import "react-day-picker/dist/style.css";
 
 @theme inline {
-  --color-background: 247 250 252;
+  --color-background: 210 20% 98%;
   --color-foreground: 5 30% 9%;
   --color-card: 0 0% 100%;
   --color-card-foreground: 5 30% 9%;
   --color-popover: 0 0% 100%;
   --color-popover-foreground: 5 30% 9%;
-  --color-primary: 245 248 251;
+  --color-primary: 210 20% 96%;
   --color-primary-foreground: 5 30% 9%;
-  
-  /* Custom primary color for direct use */
-  --primary-color: #F5F8FB;
   --color-secondary: 0 0% 96.1%;
   --color-secondary-foreground: 5 30% 9%;
   --color-muted: 0 0% 96.1%;
@@ -29,13 +26,38 @@
   --font-selecta: var(--font-selecta);
 }
 
+@utility text-primary {
+  color: hsl(var(--color-primary));
+}
+
+@utility bg-primary {
+  background-color: hsl(var(--color-primary));
+}
+
+@utility border-primary {
+  border-color: hsl(var(--color-primary));
+}
+
+/* Popover utilities */
+@utility bg-popover {
+  background-color: hsl(var(--color-popover));
+}
+
+@utility text-popover-foreground {
+  color: hsl(var(--color-popover-foreground));
+}
+
+@utility border-popover {
+  border-color: hsl(var(--color-popover));
+}
+
 * {
   border-color: hsl(var(--color-border));
 }
 
 body {
-  background-color: #F7FAFC;
-  color: #051A24;
+  background-color: hsl(var(--color-background));
+  color: hsl(var(--color-foreground));
   font-family: var(--font-sans);
 }
 
