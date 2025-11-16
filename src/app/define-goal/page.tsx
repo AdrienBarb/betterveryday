@@ -275,13 +275,13 @@ export default function DefineGoalPage() {
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
                 disabled={saveGoal.isPending}
-                className="flex-1"
+                className="h-12 w-full shadow-sm hover:shadow-md transition-shadow"
                 onClick={() => {
                   setGoalData(null);
                   reset();
@@ -294,7 +294,7 @@ export default function DefineGoalPage() {
                 type="submit"
                 size="lg"
                 disabled={saveGoal.isPending}
-                className="flex-1 bg-black text-white hover:bg-black/90"
+                className="h-12 bg-black w-full text-white hover:bg-black/90 shadow-md hover:shadow-lg transition-shadow"
               >
                 {saveGoal.isPending
                   ? "Saving..."
