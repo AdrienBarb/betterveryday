@@ -13,7 +13,7 @@ const updateGoalSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -56,7 +56,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -69,7 +69,6 @@ export async function PUT(
     }
 
     const { id: goalId } = await params;
-    console.log("🚀 ~ PUT ~ goalId:", goalId);
     const body = await request.json();
 
     let parsedBody;
