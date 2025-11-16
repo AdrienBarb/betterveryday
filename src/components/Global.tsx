@@ -35,6 +35,7 @@ export default function Global() {
 
   // Update timezone if not set (only once)
   useEffect(() => {
+    console.log("🚀 ~ Global ~ user.timezone:", user?.timezone);
     if (user && !user.timezone && !timezoneUpdateAttempted.current) {
       const detectedTimezone =
         Intl?.DateTimeFormat?.().resolvedOptions().timeZone;
@@ -47,7 +48,7 @@ export default function Global() {
       timezoneUpdateAttempted.current = true;
       updateTimezone.mutate({ timezone: detectedTimezone });
     }
-  }, [session?.user, user, updateTimezone]);
+  }, [user]);
 
   return null;
 }
