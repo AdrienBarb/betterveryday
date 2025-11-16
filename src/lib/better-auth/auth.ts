@@ -43,15 +43,5 @@ export const auth = betterAuth({
       },
     }),
   ],
-  baseURL:
-    process.env.BETTER_AUTH_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    "http://localhost:3000",
-  secret:
-    process.env.BETTER_AUTH_SECRET || "change-this-secret-key-in-production",
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL ||
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      "http://localhost:3000",
-  ],
+  secret: process.env.BETTER_AUTH_SECRET,
 });
