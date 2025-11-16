@@ -5,8 +5,6 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import toast from "react-hot-toast";
-import { useState } from "react";
 import { GoalStatus } from "@prisma/client";
 
 interface Goal {
@@ -21,32 +19,11 @@ interface Goal {
 
 export default function GoalsPage() {
   const { useGet } = useApi();
-  const [isTriggeringMorning, setIsTriggeringMorning] = useState(false);
 
   const { data, isLoading, error } = useGet("/maarty/goals") as {
     data?: { goals: Goal[] };
     isLoading: boolean;
     error: unknown;
-  };
-
-  const handleTriggerMorning = async () => {
-    setIsTriggeringMorning(true);
-    try {
-      const response = await fetch("/api/cron/morning", {
-        method: "GET",
-      });
-
-      if (response.ok) {
-        toast.success("Morning message sent successfully! 🌅");
-      } else {
-        throw new Error("Failed to trigger morning message");
-      }
-    } catch (error) {
-      toast.error("Failed to trigger morning message. Please try again.");
-      console.error("Error triggering morning message:", error);
-    } finally {
-      setIsTriggeringMorning(false);
-    }
   };
 
   if (isLoading) {
@@ -83,13 +60,6 @@ export default function GoalsPage() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold text-text">My Goals</h1>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={handleTriggerMorning}
-              disabled={isTriggeringMorning}
-              variant="outline"
-            >
-              {isTriggeringMorning ? "Sending..." : "Send Morning Message"}
-            </Button>
             <Link href="/define-goal">
               <Button className="bg-black text-white hover:bg-black/90">
                 New Goal

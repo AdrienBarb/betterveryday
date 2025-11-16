@@ -61,6 +61,18 @@ export async function POST(req: NextRequest) {
 
     // 3) If chat already linked → just acknowledge message (no logic for now)
     if (connectedUser) {
+      // Update name from Telegram profile if available and different
+      if (
+        message.chat.first_name &&
+        message.chat.first_name !== connectedUser.name
+      ) {
+        await prisma.user.update({
+          where: { id: connectedUser.id },
+          data: { name: message.chat.first_name },
+        });
+        connectedUser.name = message.chat.first_name;
+      }
+
       const activeGoal = await prisma.goal.findFirst({
         where: { userId: connectedUser.id, status: "active" },
       });
@@ -136,18 +148,27 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
+      // Update telegramChatId and name from Telegram profile
+      const updateData: { telegramChatId: string; name?: string } = {
+        telegramChatId: chatId.toString(),
+      };
+
+      // Update name from Telegram profile if available
+      if (message.chat.first_name) {
+        updateData.name = message.chat.first_name;
+      }
+
       await prisma.user.update({
         where: { id: userByIdentifier.id },
-        data: {
-          telegramChatId: chatId.toString(),
-        },
+        data: updateData,
       });
+
+      const displayName =
+        message.chat.first_name || userByIdentifier.name || "friend";
 
       await sendTelegramMessage(
         chatId,
-        `✅ Great! Your account is now connected, ${
-          userByIdentifier.name || "friend"
-        }.\n\nFrom now on, you can just talk to me here like you would to a real mentor.`
+        `✨ You're all connected, ${displayName}!\n\n\n\nHere's what I'm here for:\n\nI help you stay motivated, check in with your feelings, and gently reflect on your progress toward the goal you choose.\n\n\n\nNo pressure, no judgment — just a small mentor walking with you every day 💛`
       );
 
       return NextResponse.json({ ok: true });

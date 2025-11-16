@@ -21,8 +21,8 @@ export default function HeroSection() {
           Meet Maarty. Your daily guide to becoming your best self.
         </h1>
         <p className="text-xl text-text/80 mb-8 max-w-2xl mx-auto">
-          Maarty helps you prioritize, take action daily, and review your
-          progress weekly.
+          Maarty checks in with you every day, helps you reflect honestly, and
+          supports you as you move toward the goal that matters to you.
         </p>
 
         <div className="max-w-md mx-auto mb-8">
