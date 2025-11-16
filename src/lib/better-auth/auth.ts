@@ -7,6 +7,10 @@ import { OTPEmail } from "@/lib/emails/OTPEmail";
 import config from "@/lib/config";
 
 export const auth = betterAuth({
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "http://localhost:3000",
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
