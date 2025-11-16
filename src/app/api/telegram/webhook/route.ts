@@ -4,7 +4,7 @@ import { sendTelegramMessage } from "@/lib/telegram/sendTelegramMessage";
 import { classifyUserMessage } from "@/lib/openai/classifyUserMessage";
 import { logMessage } from "@/lib/services/messages/logMessage";
 import { updateDailyReflection } from "@/lib/openai/updateDailyReflection";
-import { Goal, User } from "@prisma/client";
+import { User } from "@prisma/client";
 
 type TelegramUpdate = {
   update_id: number;
@@ -28,8 +28,6 @@ export async function POST(req: NextRequest) {
     if (!message || !message.text) {
       return NextResponse.json({ ok: true });
     }
-
-    console.log("🚀 ~ Telegram message:", message);
 
     const chatId = message.chat.id;
     const text = message.text.trim();
