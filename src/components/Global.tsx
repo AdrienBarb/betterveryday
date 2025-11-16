@@ -25,15 +25,17 @@ export default function Global() {
     return !user.telegramChatId;
   }, [user, session]);
 
+  const timezoneUpdateAttempted = useRef(false);
+
   useEffect(() => {
     if (needsOnboarding) {
       openModal("onboarding");
     }
   }, [needsOnboarding, openModal]);
 
-  // Update timezone if not set
+  // Update timezone if not set (only once)
   useEffect(() => {
-    if (user && !user.timezone) {
+    if (user && !user.timezone && !timezoneUpdateAttempted.current) {
       const detectedTimezone =
         Intl?.DateTimeFormat?.().resolvedOptions().timeZone;
       console.log("🚀 ~ Global ~ detectedTimezone:", detectedTimezone);
@@ -42,6 +44,7 @@ export default function Global() {
         return;
       }
 
+      timezoneUpdateAttempted.current = true;
       updateTimezone.mutate({ timezone: detectedTimezone });
     }
   }, [session?.user, user, updateTimezone]);
