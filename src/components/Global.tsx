@@ -14,9 +14,8 @@ export default function Global() {
     if (!user || !session?.user) {
       return false;
     }
-    return !user.name || !user.phone;
+    return !user.telegramChatId;
   }, [user, session]);
-  console.log("🚀 ~ Global ~ needsOnboarding:", needsOnboarding);
 
   useEffect(() => {
     if (needsOnboarding) {

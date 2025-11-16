@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         email: true,
-        phone: true,
+        telegramChatId: true,
+        telegramIdentifier: true,
         emailVerified: true,
         image: true,
         createdAt: true,
@@ -34,4 +35,3 @@ export async function GET(request: NextRequest) {
     return errorHandler(error);
   }
 }
-

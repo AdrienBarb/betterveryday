@@ -94,9 +94,6 @@ export default function GoalsPage() {
                       <span>
                         End date: {format(new Date(goal.endDate), "PPP")}
                       </span>
-                      <span>
-                        Created: {format(new Date(goal.createdAt), "PPP")}
-                      </span>
                     </div>
                   </div>
                 </div>
