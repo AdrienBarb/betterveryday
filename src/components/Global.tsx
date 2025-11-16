@@ -12,11 +12,7 @@ export default function Global() {
   const openModal = useGlobalModalStore((s) => s.openModal);
   const { usePost } = useApi();
 
-  const updateTimezone = usePost("/user/timezone", {
-    onSuccess: () => {
-      refetch();
-    },
-  });
+  const updateTimezone = usePost("/user/timezone");
 
   const needsOnboarding = useMemo(() => {
     if (!user || !session?.user) {
