@@ -9,36 +9,39 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "How does Maarty work?",
-    answer: "You set one goal. Maarty creates a simple plan, sends you a daily priority, and reviews your progress every week.",
+    question: "What does Maarty actually do?",
+    answer:
+      "Maarty checks in with you every day through short, friendly messages. He helps you reflect, stay aligned with your goal, and keep moving without pressure or complicated systems.",
+  },
+  {
+    question: "Is Maarty a coach?",
+    answer:
+      "Not really. Maarty is more like a tiny mentor or accountability buddy. He won’t give you tasks or plans. He simply helps you stay consistent and honest with yourself.",
   },
   {
     question: "Do I need to install an app?",
-    answer: "No. Everything works through a clean web interface and WhatsApp notifications.",
+    answer:
+      "No. Everything happens through a simple web interface and optional Telegram check-ins.",
+  },
+  {
+    question: "How do Telegram messages work?",
+    answer:
+      "Maarty sends you a small check-in each day. You answer in a few seconds. It’s smooth, light, and feels more like talking to a friend than tracking habits.",
   },
   {
     question: "What kinds of goals can I set?",
-    answer: "Anything related to personal growth: fitness, productivity, habits, learning, creativity, routines, and more.",
-  },
-  {
-    question: "How do WhatsApp notifications work?",
-    answer: "Each morning, you receive your priority of the day. Each evening, you get a quick check-in message. It's simple and frictionless.",
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer: "Yes. You can stop your subscription whenever you want.",
-  },
-  {
-    question: "What happens after the 14-day trial?",
-    answer: "You'll be billed monthly at 9,99€. You can cancel before the trial ends if you don't wish to continue.",
+    answer:
+      "Anything you want to stay committed to: fitness, routines, habits, creativity, learning, side projects… If it matters to you, it matters to Maarty.",
   },
   {
     question: "Is my data private?",
-    answer: "Absolutely. Your check-ins, goals, and progress are private and never shared.",
+    answer:
+      "Absolutely. Your messages and reflections are private and never shared. Maarty exists to support you, not store or use your data.",
   },
   {
     question: "Can I track multiple goals?",
-    answer: "Not yet. The MVP focuses on one goal at a time to maximize results. Multi-goal support is coming soon.",
+    answer:
+      "For now, Maarty focuses on one goal at a time. Multi-goal support may come later.",
   },
 ];
 
@@ -53,7 +56,10 @@ export default function FAQSection() {
     <section className="container mx-auto px-4 py-20 bg-primary/30">
       <div className="mx-auto max-w-3xl">
         <div className="text-center mb-16">
-          <span className="inline-block px-4 py-2 text-sm font-bold text-white rounded-full mb-4 uppercase tracking-wide" style={{ backgroundColor: '#F4B953' }}>
+          <span
+            className="inline-block px-4 py-2 text-sm font-bold text-white rounded-full mb-4 uppercase tracking-wide"
+            style={{ backgroundColor: "#F4B953" }}
+          >
             faq
           </span>
         </div>
@@ -71,7 +77,7 @@ export default function FAQSection() {
                   {faq.question}
                 </span>
                 <span className="text-text/60 shrink-0">
-                  {openIndex === index ? "−" : "+"}
+                  {openIndex === index ? "-" : "+"}
                 </span>
               </button>
               {openIndex === index && (
@@ -86,4 +92,3 @@ export default function FAQSection() {
     </section>
   );
 }
-

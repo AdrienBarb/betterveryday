@@ -38,8 +38,8 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "#features", label: "Features" },
-    { href: "#how-it-works", label: "How it works" },
+    { href: "#who-is-maarty", label: "Who is Maarty?" },
+    { href: "#how-maarty-works", label: "How Maarty works" },
   ];
 
   return (
@@ -56,7 +56,7 @@ export default function Navbar() {
             </Link>
 
             {/* Navigation Links */}
-            <div className="hidden md:flex items-center gap-4">
+            {/* <div className="hidden md:flex items-center gap-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -66,7 +66,7 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Auth Actions */}

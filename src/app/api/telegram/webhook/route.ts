@@ -100,9 +100,11 @@ export async function POST(req: NextRequest) {
       // Trigger downstream ingress event for processing (classification, etc)
       await inngest.send({
         name: "maarty/message.received",
-        userId: connectedUser.id,
-        goalId: activeGoal.id,
-        text,
+        data: {
+          userId: connectedUser.id,
+          goalId: activeGoal.id,
+          text,
+        },
       });
 
       // Generate mentor reply using Claude Sonnet
