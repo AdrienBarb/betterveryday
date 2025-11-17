@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { sendTelegramMessage } from "@/lib/telegram/sendTelegramMessage";
-import { classifyUserMessage } from "@/lib/openai/classifyUserMessage";
 import { logMessage } from "@/lib/services/messages/logMessage";
-import { updateDailyReflection } from "@/lib/openai/updateDailyReflection";
 import { User } from "@prisma/client";
 import { generateMentorReply } from "@/lib/openai/generateMentorReply";
+import { inngest } from "@/lib/inngest/client";
 
 type TelegramUpdate = {
   update_id: number;
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
     const text = message.text.trim();
     const lower = text.toLowerCase();
 
-    // 1) Is this chat already linked?
+    // 1) Check if this chat is already linked to a user account
     const connectedUser = (await prisma.user.findFirst({
       where: { telegramChatId: chatId.toString() },
       select: {
@@ -43,7 +42,7 @@ export async function POST(req: NextRequest) {
       },
     })) as User | null;
 
-    // 2) Handle /start
+    // 2) Handle /start command
     if (lower === "/start") {
       if (connectedUser) {
         await sendTelegramMessage(
@@ -60,9 +59,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // 3) If chat already linked → just acknowledge message (no logic for now)
+    // 3) If chat is already linked to a user, handle as active user message flow
     if (connectedUser) {
-      // Update name from Telegram profile if available and different
+      // Update user name if Telegram profile provides a different first_name
       if (
         message.chat.first_name &&
         message.chat.first_name !== connectedUser.name
@@ -74,6 +73,7 @@ export async function POST(req: NextRequest) {
         connectedUser.name = message.chat.first_name;
       }
 
+      // Fetch the user's active goal
       const activeGoal = await prisma.goal.findFirst({
         where: { userId: connectedUser.id, status: "active" },
       });
@@ -86,68 +86,57 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // 1. Classify message first (GPT-mini)
-      const classification = await classifyUserMessage({
-        name: connectedUser.name,
-        goalTitle: activeGoal.title,
-        goalDescription: activeGoal.description,
-        userMessage: text,
-      });
-
-      // 2. Save user message
+      // Log the user's incoming message
       await logMessage({
         userId: connectedUser.id,
         goalId: activeGoal.id,
         role: "user",
         direction: "incoming",
         text,
-        category: classification.category,
-        storedLabel: classification.storedMessage,
+        category: "free_talk",
+        storedLabel: null,
       });
 
-      // 3. Update daily reflection
-      await updateDailyReflection({
+      // Trigger downstream ingress event for processing (classification, etc)
+      await inngest.send({
+        name: "maarty/message.received",
         userId: connectedUser.id,
         goalId: activeGoal.id,
-        morningMood: classification.dailyReflectionUpdate.morningMood,
-        progress: classification.dailyReflectionUpdate.progress,
-        stuck: classification.dailyReflectionUpdate.stuck,
+        text,
       });
 
-      // 4. Generate mentor answer using Claude Sonnet
+      // Generate mentor reply using Claude Sonnet
       const assistantReply = await generateMentorReply({
         name: connectedUser.name || "friend",
         goalTitle: activeGoal.title,
         goalDescription: activeGoal.description,
         userMessage: text,
-        category: classification.category,
-        reflection: classification.dailyReflectionUpdate,
       });
 
-      // 5. Send reply
+      // Send mentor's reply back to user
       await sendTelegramMessage(chatId, assistantReply);
 
-      // 6. Log assistant reply
+      // Log the assistant's outgoing message
       await logMessage({
         userId: connectedUser.id,
         goalId: activeGoal.id,
         role: "assistant",
         direction: "outgoing",
         text: assistantReply,
-        category: classification.category,
+        category: "free_talk",
         storedLabel: null,
       });
 
       return NextResponse.json({ ok: true });
     }
 
-    // 4) Chat NOT linked → treat text as potential telegramIdentifier (your unique code)
+    // 4) If chat is not linked, treat message text as a potential telegramIdentifier (link code)
     const userByIdentifier = await prisma.user.findUnique({
       where: { telegramIdentifier: text },
     });
 
     if (userByIdentifier) {
-      // Extra safety: avoid linking same code to multiple chats
+      // Extra safety: avoid linking the same code to multiple Telegram accounts
       if (
         userByIdentifier.telegramChatId &&
         userByIdentifier.telegramChatId !== chatId.toString()
@@ -159,12 +148,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // Update telegramChatId and name from Telegram profile
+      // Prepare update for telegramChatId and (optionally) name from Telegram profile
       const updateData: { telegramChatId: string; name?: string } = {
         telegramChatId: chatId.toString(),
       };
 
-      // Update name from Telegram profile if available
       if (message.chat.first_name) {
         updateData.name = message.chat.first_name;
       }
@@ -185,7 +173,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // 5) Unknown chat, unknown code
+    // 5) If message is not a known code, reply with instructions
     await sendTelegramMessage(
       chatId,
       "I couldn't find this code.\n\nPlease open the Maarty web app, go to the Telegram section, and send me the code you see there."

@@ -1,5 +1,3 @@
-// lib/maarty/classifyUserMessage.ts
-
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -7,14 +5,9 @@ const openai = new OpenAI({
 });
 
 export type ClassifiedResult = {
-  category: string;
-  storedMessage: string | null;
-  assistantResponse: string;
-  dailyReflectionUpdate: {
-    morningMood: string | null;
-    progress: string | null;
-    stuck: string | null;
-  };
+  morningMood: string | null;
+  progress: string | null;
+  stuck: string | null;
 };
 
 export async function classifyUserMessage(params: {
@@ -22,35 +15,47 @@ export async function classifyUserMessage(params: {
   goalTitle: string;
   goalDescription: string;
   userMessage: string;
-}) {
+}): Promise<ClassifiedResult> {
   const { name, goalTitle, goalDescription, userMessage } = params;
 
   const systemPrompt = `
-You are Maarty, a warm, compassionate AI mentor.
+You are Maarty's background reflection analyzer.
 
-Your job:
-- interpret ANY user message
-- detect what kind of message it is
-- produce a friendly, supportive response
-- fill optional reflection fields
+Your ONLY job is to read a single user message and detect:
+- the user's mood or energy (morningMood)
+- any concrete progress they describe (progress)
+- anything they feel stuck or blocked on (stuck)
 
-You NEVER give commands.
-You NEVER assign tasks.
-You ALWAYS validate feelings first.
+Definitions:
 
-Choose ONE category:
-- "morning_motivation_reply"
-- "goal_progress_update"
-- "feeling_stuck"
-- "new_intention_or_plan"
-- "free_talk"
-- "irrelevant"
+morningMood:
+- emotions, mindset, or energy level
+- examples: motivated, tired, anxious, excited, unfocused
+- set to null if no mood is expressed
 
-"storedMessage" is a short summary (1 sentence max).
-"assistantResponse" is what Maarty says back.
-"dailyReflectionUpdate" contains optional fields (null if not relevant).
+progress:
+- clear, concrete actions taken toward the goal
+- examples: "I worked on the landing page", "I published the MVP", "I researched pricing"
+- set to null if no progress is described
 
-ALWAYS output valid JSON.
+stuck:
+- confusion, obstacles, frustration, uncertainty, discouragement
+- examples: "I don't know what to do next", "I'm blocked", "This feels overwhelming"
+- set to null if nothing indicates feeling stuck
+
+RULES:
+- Never generate advice.
+- Never interpret loosely. Only extract what is explicitly or clearly implied.
+- If nothing fits a field, set it to null.
+- Return ONLY the JSON object with the three fields.
+
+Output must match exactly:
+
+{
+  "morningMood": null or "...",
+  "progress": null or "...",
+  "stuck": null or "..."
+}
 `.trim();
 
   const userPrompt = `
@@ -60,23 +65,12 @@ Description: ${goalDescription}
 
 User message: "${userMessage}"
 
-Return ONLY this JSON structure:
-
-{
-  "category": "...",
-  "storedMessage": "...",
-  "assistantResponse": "...",
-  "dailyReflectionUpdate": {
-    "morningMood": null or "...",
-    "progress": null or "...",
-    "stuck": null or "..."
-  }
-}
+Extract reflection signals and return ONLY the JSON.
 `.trim();
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4.1-mini",
-    temperature: 0.4,
+    temperature: 0, // deterministic
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
