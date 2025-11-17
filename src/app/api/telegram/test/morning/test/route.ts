@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     // Generate morning message via OpenAI
     const morningText = await generateMorningMessage({
       name: user?.name,
-      goalTitle: user?.goals[0]?.title,
-      goalDescription: user?.goals[0]?.description,
+      goalTitle: user?.goals[0]?.title || "",
+      goalDescription: user?.goals[0]?.description || "",
       lastMorningSummaries,
     });
 
