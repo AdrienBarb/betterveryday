@@ -5,6 +5,7 @@ import { classifyUserMessage } from "@/lib/openai/classifyUserMessage";
 import { logMessage } from "@/lib/services/messages/logMessage";
 import { updateDailyReflection } from "@/lib/openai/updateDailyReflection";
 import { User } from "@prisma/client";
+import { generateMentorReply } from "@/lib/openai/generateMentorReply";
 
 type TelegramUpdate = {
   update_id: number;
@@ -85,45 +86,55 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // User is connected → classify the message
-      const result = await classifyUserMessage({
-        name: connectedUser?.name || "friend",
+      // 1. Classify message first (GPT-mini)
+      const classification = await classifyUserMessage({
+        name: connectedUser.name,
         goalTitle: activeGoal.title,
         goalDescription: activeGoal.description,
         userMessage: text,
       });
 
-      // 1. Save user message
+      // 2. Save user message
       await logMessage({
         userId: connectedUser.id,
         goalId: activeGoal.id,
         role: "user",
         direction: "incoming",
         text,
-        category: result.category,
-        storedLabel: result.storedMessage,
+        category: classification.category,
+        storedLabel: classification.storedMessage,
       });
 
-      // 2. Update reflection if needed
+      // 3. Update daily reflection
       await updateDailyReflection({
         userId: connectedUser.id,
         goalId: activeGoal.id,
-        morningMood: result.dailyReflectionUpdate.morningMood,
-        progress: result.dailyReflectionUpdate.progress,
-        stuck: result.dailyReflectionUpdate.stuck,
+        morningMood: classification.dailyReflectionUpdate.morningMood,
+        progress: classification.dailyReflectionUpdate.progress,
+        stuck: classification.dailyReflectionUpdate.stuck,
       });
 
-      // 3. Send AI reply
-      await sendTelegramMessage(chatId, result.assistantResponse);
+      // 4. Generate mentor answer using Claude Sonnet
+      const assistantReply = await generateMentorReply({
+        name: connectedUser.name || "friend",
+        goalTitle: activeGoal.title,
+        goalDescription: activeGoal.description,
+        userMessage: text,
+        category: classification.category,
+        reflection: classification.dailyReflectionUpdate,
+      });
 
-      // 4. Log assistant message
+      // 5. Send reply
+      await sendTelegramMessage(chatId, assistantReply);
+
+      // 6. Log assistant reply
       await logMessage({
         userId: connectedUser.id,
         goalId: activeGoal.id,
         role: "assistant",
         direction: "outgoing",
-        text: result.assistantResponse,
-        category: result.category,
+        text: assistantReply,
+        category: classification.category,
         storedLabel: null,
       });
 

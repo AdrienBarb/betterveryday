@@ -1,9 +1,4 @@
-// lib/maarty/openai.ts
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+import { anthropic } from "../claude/client";
 
 type GenerateMorningMessageInput = {
   name?: string | null;
@@ -52,16 +47,19 @@ Talk directly to them ("you").
 Return ONLY the final message as plain text.
 `.trim();
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
+  const completion = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }],
     temperature: 0.9,
   });
 
-  const message = completion.choices[0]?.message?.content?.trim();
+  const message =
+    completion.content[0]?.type === "text"
+      ? completion.content[0].text.trim()
+      : null;
+
   if (!message) throw new Error("No morning message generated");
 
   return message;

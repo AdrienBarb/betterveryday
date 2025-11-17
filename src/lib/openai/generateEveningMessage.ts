@@ -1,5 +1,4 @@
-import OpenAI from "openai";
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+import { anthropic } from "../claude/client";
 
 export async function generateEveningMessage({
   name,
@@ -31,14 +30,20 @@ Goal: ${goalTitle}
 Return only the final message as text.
   `.trim();
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
+  const completion = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 1024,
+    system: system,
+    messages: [{ role: "user", content: user }],
     temperature: 0.9,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
   });
 
-  return completion.choices[0].message?.content?.trim();
+  const message =
+    completion.content[0]?.type === "text"
+      ? completion.content[0].text.trim()
+      : null;
+
+  if (!message) throw new Error("No evening message generated");
+
+  return message;
 }
