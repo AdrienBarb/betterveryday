@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/lib/hooks/useUser";
 import toast from "react-hot-toast";
+import { Copy } from "lucide-react";
 
 interface OnboardingModalProps {
   open: boolean;
@@ -41,6 +42,17 @@ export default function OnboardingModal({
   };
 
   const telegramBotUrl = "https://t.me/maarty_bot";
+
+  const handleCopyCode = async () => {
+    if (user?.telegramIdentifier) {
+      try {
+        await navigator.clipboard.writeText(user.telegramIdentifier);
+        toast.success("Code copied to clipboard! 📋");
+      } catch {
+        toast.error("Failed to copy code. Please try again.");
+      }
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,11 +91,20 @@ export default function OnboardingModal({
                 <p className="text-sm font-medium text-text">
                   Step 2: Send your code to Maarty
                 </p>
-                <div className="bg-primary rounded-lg p-4 text-center border-2 border-dashed border-text/20">
+                <div className="bg-primary rounded-lg p-4 text-center border-2 border-dashed border-text/20 relative">
                   <p className="text-xs text-text/60 mb-2">Copy this code:</p>
-                  <p className="text-xl font-mono font-bold text-text break-all select-all">
-                    {user?.telegramIdentifier}
-                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <p className="text-xl font-mono font-bold text-text break-all select-all">
+                      {user?.telegramIdentifier}
+                    </p>
+                    <button
+                      onClick={handleCopyCode}
+                      className="p-1.5 hover:bg-text/10 rounded-md transition-colors cursor-pointer"
+                      aria-label="Copy code"
+                    >
+                      <Copy className="w-4 h-4 text-text/70 hover:text-text" />
+                    </button>
+                  </div>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
                   <p className="text-sm text-text/80 text-center">

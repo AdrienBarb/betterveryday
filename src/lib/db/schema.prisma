@@ -15,7 +15,7 @@ model User {
   phone              String?
   timezone           String?
   telegramChatId     String?
-  telegramIdentifier String?           @default(uuid())
+  telegramIdentifier String?           @default(cuid())
   emailVerified      Boolean           @default(false)
   image              String?
   createdAt          DateTime          @default(now())

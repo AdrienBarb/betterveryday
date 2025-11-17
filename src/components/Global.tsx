@@ -31,11 +31,9 @@ export default function Global() {
 
   // Update timezone if not set (only once)
   useEffect(() => {
-    console.log("🚀 ~ Global ~ user.timezone:", user?.timezone);
     if (user && !user.timezone && !timezoneUpdateAttempted.current) {
       const detectedTimezone =
         Intl?.DateTimeFormat?.().resolvedOptions().timeZone;
-      console.log("🚀 ~ Global ~ detectedTimezone:", detectedTimezone);
 
       if (!detectedTimezone) {
         return;
