@@ -28,5 +28,11 @@ export const classifyAndReflect = inngest.createFunction(
       progress: classification.progress,
       stuck: classification.stuck,
     });
+
+    return JSON.stringify({
+      morningMood: classification.morningMood,
+      progress: classification.progress,
+      stuck: classification.stuck,
+    });
   }
 );
