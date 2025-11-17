@@ -75,7 +75,7 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="cursor-pointer">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-8 w-8 border border-text/10">
                       <AvatarFallback>
                         {getInitials(user.name, user.email)}
                       </AvatarFallback>

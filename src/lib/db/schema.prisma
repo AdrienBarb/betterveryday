@@ -81,7 +81,6 @@ model Goal {
   userId      String
   title       String
   description String
-  endDate     DateTime
   status      GoalStatus @default(active)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

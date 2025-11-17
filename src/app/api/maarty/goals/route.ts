@@ -10,7 +10,6 @@ import { ERROR_CODES } from "@/lib/constants/errorCodes";
 const goalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
 });
 
 export async function GET(request: NextRequest) {
@@ -69,14 +68,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, endDate } = goalSchema.parse(body);
+    const { title, description } = goalSchema.parse(body);
 
     const goal = await prisma.goal.create({
       data: {
         userId: session.user.id,
         title,
         description,
-        endDate: new Date(endDate),
       },
     });
 

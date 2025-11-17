@@ -30,7 +30,6 @@ interface Goal {
   id: string;
   title: string;
   description: string;
-  endDate: string;
   status: GoalStatus;
   createdAt: string;
   updatedAt: string;
@@ -43,7 +42,7 @@ export default function GoalDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  console.log("🚀 ~ GoalDetailPage ~ id:", id);
+
   const { useGet, usePut } = useApi();
   const { openModal } = useGlobalModalStore();
   const { data, isLoading, error, refetch } = useGet(`/maarty/goals/${id}`) as {
@@ -101,10 +100,6 @@ export default function GoalDetailPage({
   }
 
   const goal = data.goal;
-  const daysRemaining = Math.ceil(
-    (new Date(goal.endDate).getTime() - new Date().getTime()) /
-      (1000 * 60 * 60 * 24)
-  );
 
   return (
     <div className="container mx-auto px-4 py-20">
@@ -162,13 +157,6 @@ export default function GoalDetailPage({
             </Badge>
           </div>
           <p className="text-text/70 text-lg">{goal.description}</p>
-        </div>
-
-        <div className="bg-white rounded-lg border p-6 mb-6">
-          <p className="text-text/60 mb-2 text-sm">Days Remaining</p>
-          <p className="text-text font-semibold text-xl">
-            {daysRemaining > 0 ? `${daysRemaining} days` : "Overdue"}
-          </p>
         </div>
 
         {goal.reflections.length > 0 && (

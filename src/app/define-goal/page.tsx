@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker";
 import { useSession } from "@/lib/better-auth/auth-client";
 import { useGlobalModalStore } from "@/lib/stores/GlobalModalStore";
 import toast from "react-hot-toast";
@@ -26,9 +25,6 @@ const goalInputSchema = z.object({
 const goalConfirmationSchema = z.object({
   goalTitle: z.string().min(1),
   goalDescription: z.string().min(1),
-  suggestedEndDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
 });
 
 type GoalInputFormData = z.infer<typeof goalInputSchema>;
@@ -37,17 +33,16 @@ type GoalConfirmationFormData = z.infer<typeof goalConfirmationSchema>;
 interface GoalData {
   goalTitle: string;
   goalDescription: string;
-  suggestedEndDate: string;
 }
 
 const goalExamples = [
-  "Lose 5kg by next summer",
-  "Launch my MVP next month",
-  "Finish a book by the 3 August",
-  "Save 1000€ by next year",
-  "Run a marathon next spring",
-  "Learn Spanish by December",
-  "Build a side project by next month",
+  "Lose 5kg",
+  "Launch my MVP",
+  "Finish a book",
+  "Save 1000€",
+  "Run a marathon",
+  "Learn Spanish",
+  "Build a side project",
 ];
 
 function useTypingEffect(examples: string[]) {
@@ -115,13 +110,7 @@ export default function DefineGoalPage() {
     handleSubmit: handleSubmitConfirmation,
     formState: { errors: confirmationErrors },
     reset,
-    setValue,
-    watch,
   } = confirmationForm;
-
-  const selectedDate = watch("suggestedEndDate")
-    ? new Date(watch("suggestedEndDate"))
-    : undefined;
 
   const generateGoal = usePost("/maarty/goals/generate", {
     onSuccess: (data: GoalData) => {
@@ -129,7 +118,6 @@ export default function DefineGoalPage() {
       reset({
         goalTitle: data.goalTitle,
         goalDescription: data.goalDescription,
-        suggestedEndDate: data.suggestedEndDate,
       });
     },
     onError: (error: unknown) => {
@@ -170,7 +158,6 @@ export default function DefineGoalPage() {
           saveGoal.mutate({
             title: data.goalTitle,
             description: data.goalDescription,
-            endDate: data.suggestedEndDate,
           });
         },
       });
@@ -180,7 +167,6 @@ export default function DefineGoalPage() {
     saveGoal.mutate({
       title: data.goalTitle,
       description: data.goalDescription,
-      endDate: data.suggestedEndDate,
     });
   };
 
@@ -245,32 +231,6 @@ export default function DefineGoalPage() {
               {confirmationErrors.goalDescription && (
                 <p className="text-sm text-destructive mt-1">
                   {confirmationErrors.goalDescription.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="end-date" className="text-text font-semibold">
-                When do you want this done?
-              </Label>
-              <div className="mt-2">
-                <DatePicker
-                  value={selectedDate}
-                  onChange={(date: Date | undefined) => {
-                    if (date) {
-                      const dateString = date.toISOString().split("T")[0];
-                      setValue("suggestedEndDate", dateString, {
-                        shouldValidate: true,
-                      });
-                    }
-                  }}
-                  placeholder="Select a date"
-                  disabled={saveGoal.isPending}
-                />
-              </div>
-              {confirmationErrors.suggestedEndDate && (
-                <p className="text-sm text-destructive mt-1">
-                  {confirmationErrors.suggestedEndDate.message}
                 </p>
               )}
             </div>

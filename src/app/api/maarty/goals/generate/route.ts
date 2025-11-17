@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
     const systemPrompt = `You are Maarty, a friendly and supportive AI mentor who helps users achieve finite, concrete goals.
 
 Your job:
-- Transform any user input into a clear, finite goal with a realistic finish line.
+- Transform any user input into a clear, finite goal.
 - Create a short description written in first person ("I will...") that explains what the goal means and what the user will accomplish.
-- Suggest a realistic end date based on the nature of the goal. Assume the user has a normal life schedule and can work on the goal a little each day or each week.
 
 Rules:
 - The goal must ALWAYS be finite and achievable. If the user gives a vague or infinite goal ("be healthier", "be more productive", "read more"), convert it into a concrete, measurable objective, like:
@@ -31,7 +30,6 @@ Rules:
   - "Finish one book"
   - "Clean and organize your room"
   - "Launch a minimal MVP"
-- The end date must be a valid ISO date string (YYYY-MM-DD).
 - The goal description should be 1–2 simple sentences written in first person, starting with "I will..." (e.g., "I will lose 3kg by following a balanced diet and exercising regularly").
 - Always return valid JSON with the requested fields and nothing else.`;
 
@@ -41,8 +39,7 @@ Today is: ${today}
 Return ONLY a JSON object with the following fields:
 {
   "goalTitle": string,
-  "goalDescription": string,
-  "suggestedEndDate": string
+  "goalDescription": string
 }`;
 
     const completion = await openai.chat.completions.create({
@@ -56,7 +53,6 @@ Return ONLY a JSON object with the following fields:
     });
 
     const content = completion.choices[0]?.message?.content;
-    console.log("🚀 ~ POST ~ content:", content);
     if (!content) {
       throw new Error("No response from OpenAI");
     }
@@ -73,7 +69,6 @@ Return ONLY a JSON object with the following fields:
     const responseSchema = z.object({
       goalTitle: z.string(),
       goalDescription: z.string(),
-      suggestedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     });
 
     const validatedData = responseSchema.parse(goalData);

@@ -1,7 +1,6 @@
 "use client";
 
 import useApi from "@/lib/hooks/useApi";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -11,7 +10,6 @@ interface Goal {
   id: string;
   title: string;
   description: string;
-  endDate: string;
   status: GoalStatus;
   createdAt: string;
   updatedAt: string;
@@ -104,11 +102,6 @@ export default function GoalsPage() {
                         </Badge>
                       </div>
                       <p className="text-text/70 mb-4">{goal.description}</p>
-                      <div className="flex items-center gap-4 text-sm text-text/60">
-                        <span>
-                          End date: {format(new Date(goal.endDate), "PPP")}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
