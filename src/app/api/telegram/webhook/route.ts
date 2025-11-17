@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
 
       await sendTelegramMessage(
         chatId,
-        `✨ You're all connected, ${displayName}!\n\n\n\nHere's what I'm here for:\n\nI help you stay motivated, check in with your feelings, and gently reflect on your progress toward the goal you choose.\n\n\n\nNo pressure, no judgment — just a small mentor walking with you every day 💛`
+        `✨ You're connected, ${displayName}!\n\nHere's what happens next:\n\nI'll help you stick to your goal with small daily check-ins.\nEvery morning you'll get a gentle push to start your day.\nEvery evening I'll ask how things went, so you can reflect honestly.\n\nYou can always follow your goal or update it here:\n\n👉 [coachmaarty.com/goals](https://coachmaarty.com/goals)\n\nWe're in this together.\nEnjoy your evening — I'll talk to you tomorrow morning 💛`
       );
 
       return NextResponse.json({ ok: true });
