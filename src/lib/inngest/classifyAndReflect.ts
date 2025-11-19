@@ -20,6 +20,7 @@ export const classifyAndReflect = inngest.createFunction(
       goalDescription: goal.description,
       userMessage: text,
     });
+    console.log("🚀 ~ classification:", classification);
 
     await updateDailyReflection({
       userId,
